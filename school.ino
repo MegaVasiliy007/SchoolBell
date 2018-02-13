@@ -4,12 +4,29 @@
 
 //переменные
 #define rele 5 // пин реле
-OneButton button(3, true); 
+#define btn 3 // пин кнопки
+#define sub 1 //включить субботу
+#define count 16 //количество звонков в день
+#define count_s 8 //количество звонков в субботу
 
-int w[2][16] = {{8, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 14},
-                 {0, 40, 50, 30, 50, 30, 50, 30, 40, 20, 30, 10, 20, 0, 10, 50}};
-int s[2][8] = {{8, 8, 8, 9, 9, 10, 10, 11},
-             {0, 40, 50, 30, 40, 20, 30, 10}};
+//настройка времени запуска
+#define set_hour 7 //часы
+#define set_minute 30 //минуты
+#define set_second 0 //сукунды
+#define set_day 5 //день
+#define set_month 2 //месяц
+#define set_year 2018 //год
+
+OneButton button(btn, true);
+
+//звонки в день
+int w[2][count] = {{8, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 14},
+                   {0, 40, 50, 30, 50, 30, 50, 30, 40, 20, 30, 10, 20, 0, 10, 50}};
+
+//звонки в субботу
+int s[2][count_s] = {{8, 8, 8, 9, 9, 10, 10, 11},
+                     {0, 40, 50, 30, 40, 20, 30, 10}};
+
 boolean f = 0;
 volatile boolean flag = 1, d = 0;
 int i = 0;
@@ -20,7 +37,7 @@ void setup() {
   digitalWrite(13, 0); //выключаем светодиод
   pinMode(rele, OUTPUT);
   digitalWrite(rele, 0);
-  setTime(7, 30, 00, 5, 2, 18);
+  setTime(set_hour, set_minute, set_second, set_day, set_month, set_year);
   button.attachClick(oneclick);
   button.attachDoubleClick(doubleclick);
   button.attachLongPressStart(longPressStart);
@@ -39,7 +56,7 @@ void loop() {
       digitalWrite(rele, 1);
       Serial.println("dzin");
       f = 1;
-    } else if (weekday() == 7 && hour() == s[0][i] && minute() == s[1][i] && second() == 0) {
+    } else if (weekday() == 7 && hour() == s[0][i] && minute() == s[1][i] && second() == 0 && sub) {
         digitalWrite(rele, 1);
         Serial.println("dzin");
         f = 1;
@@ -48,9 +65,9 @@ void loop() {
        i++;
        f = 0;
        Serial.println(i);
-     } else if (i == 16 && 2 <= weekday() <= 6) {
+     } else if (i == count && 2 <= weekday() <= 6) {
         i = 0;
-     } else if (i == 8 && weekday() == 7) {
+     } else if (i == count_s && weekday() == 7 && sub) {
       i = 0;
      }
   }
@@ -103,7 +120,7 @@ void longPressStop() {
   digitalWrite(rele, 0);
 }
 
-//
+//Дебаг
 void debug() {
   Serial.print(hour());
   Serial.print(" ");
@@ -119,4 +136,3 @@ void debug() {
   Serial.print(" ");
   Serial.println(year());
 }
-
